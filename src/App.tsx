@@ -3,6 +3,8 @@ import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { DemoBanner } from './components/common/DemoBanner';
 import { Hero } from './components/landing/Hero';
+import { MetricsStrip } from './components/landing/MetricsStrip';
+import { FeatureCards } from './components/landing/FeatureCards';
 import { HeritageStory } from './components/landing/HeritageStory';
 import { ProcessWorkflow } from './components/landing/ProcessWorkflow';
 import { SourceViewer } from './components/landing/SourceViewer';
@@ -13,7 +15,7 @@ import { HistoryView } from './components/history/HistoryView';
 import { AuthModal } from './components/auth/AuthModal';
 import { useLanguage } from './context/LanguageContext';
 import { useAuth } from './context/AuthContext';
-import { ArrowRight, BookOpen, Stethoscope, Sparkles } from 'lucide-react';
+import { BookOpen, Stethoscope, Sparkles } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { t } = useLanguage();
@@ -21,7 +23,6 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('home');
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
 
-  // Require auth or demo for assessment / admin if configured, or prompt modal
   const handleProtectedNavigation = (tab: string) => {
     setActiveTab(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -33,7 +34,7 @@ export const App: React.FC = () => {
       {/* Top Banner indicating Supabase vs Demo mode */}
       <DemoBanner />
 
-      {/* Main Sticky Navbar */}
+      {/* Main Sticky Luxury Navbar */}
       <Navbar 
         activeTab={activeTab} 
         setActiveTab={handleProtectedNavigation} 
@@ -44,45 +45,57 @@ export const App: React.FC = () => {
       <main className="flex-1">
         {activeTab === 'home' && (
           <div>
+            {/* 1. Redesigned Hero with 3D digital sculpture (No book photo) */}
             <Hero 
               onStartAssessment={() => handleProtectedNavigation('assessment')} 
               onViewSource={() => handleProtectedNavigation('sourceGallery')} 
             />
+
+            {/* 2. Refined Metrics Strip */}
+            <MetricsStrip />
+
+            {/* 3. Core Feature Cards */}
+            <FeatureCards onNavigate={handleProtectedNavigation} />
+
+            {/* 4. Heritage Story & Distinction Breakdown */}
             <HeritageStory />
+
+            {/* 5. 6-Step SOP Workflow Layout */}
             <ProcessWorkflow />
-            <SourceViewer />
 
             {/* Final Landing Call to Action Section */}
-            <section className="py-20 bg-gradient-to-br from-[#123C35] via-[#15443B] to-[#194D42] text-[#F6F3E9] border-t border-[#D9AD54]/30">
-              <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#194D42] text-[#D9AD54] text-xs font-mono font-bold uppercase border border-[#D9AD54]/30">
+            <section className="py-20 bg-gradient-to-br from-[#0B2925] via-[#123C35] to-[#194D42] text-[#F6F3E9] border-t border-[#D9AD54]/30 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#D9AD54_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
+
+              <div className="max-w-4xl mx-auto px-4 text-center space-y-6 relative z-10">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#194D42] text-[#D9AD54] text-xs font-mono font-bold uppercase border border-[#D9AD54]/40 shadow-sm">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>EXPLORE THE REFERENCE METHOD</span>
                 </div>
 
-                <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#FFFDF8]">
+                <h2 className="font-serif text-3xl sm:text-5xl font-bold text-[#FFFDF8] leading-tight">
                   Digitizing Siddha Wisdom with Transparency & Rigor.
                 </h2>
 
-                <p className="text-sm sm:text-base text-[#F6F3E9]/80 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-sm sm:text-base text-[#F6F3E9]/85 max-w-2xl mx-auto leading-relaxed">
                   Join researchers, students, and clinicians in exploring traditional Siddha anthropometrics through authenticated manuscripts, rigorous unit normalization, and responsible data management.
                 </p>
 
                 <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
                   <button
                     onClick={() => handleProtectedNavigation('assessment')}
-                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#D9AD54] hover:bg-[#e4be6b] text-[#123C35] font-bold text-sm shadow-elevated transition-all"
+                    className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#D9AD54] to-[#E5C170] hover:from-[#e4be6b] hover:to-[#edd18e] text-[#0B2925] font-bold text-sm shadow-gold-glow transition-all transform hover:-translate-y-0.5"
                   >
-                    <Stethoscope className="w-4 h-4" />
+                    <Stethoscope className="w-4 h-4 text-[#0B2925]" />
                     <span>{t.hero.primaryCta}</span>
                   </button>
 
                   <button
-                    onClick={() => handleProtectedNavigation('research')}
-                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#194D42] hover:bg-[#1f5e51] text-[#F6F3E9] border border-[#D9AD54]/30 font-semibold text-sm transition-all"
+                    onClick={() => handleProtectedNavigation('sourceGallery')}
+                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl emerald-glass hover:bg-[#194D42] text-[#F6F3E9] border border-[#D9AD54]/40 font-semibold text-sm transition-all"
                   >
                     <BookOpen className="w-4 h-4 text-[#D9AD54]" />
-                    <span>View Published Studies</span>
+                    <span>Inspect Original Manuscripts</span>
                   </button>
                 </div>
               </div>

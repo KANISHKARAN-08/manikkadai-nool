@@ -237,9 +237,9 @@ export const ReferenceView: React.FC = () => {
             {isAdmin && (
               <button
                 onClick={() => setModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#123C35] hover:bg-[#194D42] text-[#FFFDF8] font-bold text-xs shadow-md transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D9AD54] to-[#E5C170] hover:from-[#C49D44] hover:to-[#D5B160] text-[#0B2925] font-bold text-xs shadow-md transition-all"
               >
-                <Plus className="w-4 h-4 text-[#D9AD54]" />
+                <Plus className="w-4 h-4 text-[#0B2925]" />
                 <span>{t.references.addEntryBtn}</span>
               </button>
             )}
@@ -425,8 +425,8 @@ export const ReferenceView: React.FC = () => {
 
       {/* ADD REFERENCE ENTRY MODAL */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#123C35]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#FFFDF8] rounded-2xl border-2 border-[#123C35] shadow-2xl max-w-2xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto space-y-6 animate-fade-in">
+        <div className="fixed inset-0 z-50 bg-[#0B2925]/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] rounded-2xl border-2 border-[#0B2925] shadow-2xl max-w-2xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto space-y-6 animate-fade-in">
             
             <div className="flex items-center justify-between border-b border-[#E3E4DA] pb-4">
               <div>

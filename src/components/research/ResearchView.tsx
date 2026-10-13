@@ -49,7 +49,7 @@ export const ResearchView: React.FC = () => {
         </div>
 
         {/* Section 1: Classical Literature Foundation */}
-        <div className="rounded-2xl bg-[#FFFDF8] border border-[#E3E4DA] p-6 sm:p-8 shadow-card space-y-4">
+        <div className="rounded-2xl bg-[#FFFDF8] border border-[#E3E4DA] border-l-4 border-l-[#D9AD54] p-6 sm:p-8 shadow-card space-y-4">
           <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#123C35] flex items-center gap-2.5">
             <Sparkles className="w-5 h-5 text-[#D9AD54]" />
             <span>{t.research.section1Title}</span>

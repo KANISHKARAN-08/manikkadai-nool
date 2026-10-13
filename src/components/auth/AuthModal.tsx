@@ -54,8 +54,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#123C35]/65 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#FFFDF8] rounded-2xl border-2 border-[#123C35] shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6 animate-fade-in relative">
+    <div className="fixed inset-0 z-50 bg-[#0B2925]/75 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-[#FFFDF8] rounded-2xl border-2 border-[#0B2925] shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6 animate-fade-in relative">
         
         {/* Close Button */}
         <button
@@ -144,7 +144,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-xl bg-[#123C35] hover:bg-[#194D42] text-[#FFFDF8] font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#D9AD54] to-[#E5C170] hover:from-[#C49D44] hover:to-[#D5B160] text-[#0B2925] font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
           >
             {loading ? 'Processing...' : (mode === 'signin' ? t.auth.signInBtn : t.auth.signUpBtn)}
           </button>

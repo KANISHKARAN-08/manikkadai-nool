@@ -234,8 +234,8 @@ export const HistoryView: React.FC = () => {
 
       {/* DETAIL MODAL */}
       {selectedRecord && (
-        <div className="fixed inset-0 z-50 bg-[#123C35]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#FFFDF8] rounded-2xl border-2 border-[#123C35] shadow-2xl max-w-2xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto space-y-6 animate-fade-in">
+        <div className="fixed inset-0 z-50 bg-[#0B2925]/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] rounded-2xl border-2 border-[#0B2925] shadow-2xl max-w-2xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto space-y-6 animate-fade-in">
             <div className="flex items-center justify-between border-b border-[#E3E4DA] pb-4">
               <div>
                 <span className="text-[11px] font-mono text-[#D9AD54] uppercase font-bold">EXPO ARCHIVE RECORD</span>

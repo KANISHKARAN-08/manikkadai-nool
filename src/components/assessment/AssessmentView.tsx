@@ -246,13 +246,13 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onNavigateHistor
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 px-6 rounded-xl bg-[#123C35] hover:bg-[#194D42] text-[#FFFDF8] font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#D9AD54] to-[#E5C170] hover:from-[#e4be6b] hover:to-[#edd18e] text-[#0B2925] font-bold text-sm shadow-gold-glow transition-all flex items-center justify-center gap-2.5 transform hover:-translate-y-0.5"
                 >
                   {loading ? (
                     <span>{t.assessment.searchingBtn}</span>
                   ) : (
                     <>
-                      <Stethoscope className="w-4 h-4 text-[#D9AD54]" />
+                      <Stethoscope className="w-4 h-4 text-[#0B2925]" />
                       <span>{t.assessment.findBtn}</span>
                     </>
                   )}
@@ -318,7 +318,8 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({ onNavigateHistor
 
         {/* RESULTS REPORT CARD (Rendered on Submission) */}
         {currentRecord && (
-          <div className="mt-12 rounded-2xl bg-[#FFFDF8] border-2 border-[#123C35] p-6 sm:p-10 shadow-elevated space-y-8 animate-fade-in print-card" id="assessment-report-section">
+          <div className="mt-12 rounded-2xl bg-[#FFFDF8] border-2 border-[#D9AD54] p-6 sm:p-10 shadow-elevated space-y-8 animate-fade-in print-card relative overflow-hidden" id="assessment-report-section">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#123C35] via-[#D9AD54] to-[#123C35]"></div>
             
             {/* Report Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#E3E4DA] gap-4">
