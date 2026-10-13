@@ -30,7 +30,7 @@ export const HistoryView: React.FC = () => {
   }, [user]);
 
   const loadHistory = async () => {
-    const list = await getAssessmentHistory(user?.id);
+    const list = await getAssessmentHistory(user);
     setRecords(list);
   };
 
@@ -46,13 +46,13 @@ export const HistoryView: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this assessment session record?')) return;
-    await deleteAssessment(id);
+    await deleteAssessment(id, user);
     loadHistory();
   };
 
   const handleClear = async () => {
     if (!confirm(t.history.clearConfirm)) return;
-    await clearAssessmentHistory();
+    await clearAssessmentHistory(user);
     loadHistory();
   };
 

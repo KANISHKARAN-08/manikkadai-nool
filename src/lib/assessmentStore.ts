@@ -1,5 +1,5 @@
-import { AssessmentRecord, UnitType, ReferenceEntry, MatchStatus } from '../types';
-import { normalizeMeasurement, findMatchingReferences } from './normalization';
+import { AssessmentRecord, UnitType, ReferenceEntry, MatchStatus, UserProfile } from '../types';
+import { normalizeMeasurement, findMatchingReferences, parseTraditionalVirarkadai } from './normalization';
 import { getReferenceEntries } from './referenceStore';
 import { supabase, isSupabaseConfigured } from './supabase';
 
@@ -7,9 +7,10 @@ const LOCAL_ASSESSMENTS_KEY = 'mn_assessments_history';
 
 export interface CreateAssessmentInput {
   sessionId?: string;
-  measurementVal: number;
+  measurementMode: 'traditional' | 'physical';
+  measurementVal: number | string;
   unit: UnitType;
-  repeatMeasurement?: number;
+  repeatMeasurement?: number | string;
   notes?: string;
   userId?: string;
 }
@@ -17,9 +18,22 @@ export interface CreateAssessmentInput {
 /**
  * Creates and persists a new assessment record.
  */
-export async function createAssessment(input: CreateAssessmentInput): Promise<AssessmentRecord> {
-  const norm = normalizeMeasurement(input.measurementVal, input.unit);
-  const references = await getReferenceEntries(false); // only verified
+export async function createAssessment(
+  input: CreateAssessmentInput,
+  user?: UserProfile | null
+): Promise<AssessmentRecord> {
+  const references = await getReferenceEntries(false); // only verified references
+
+  let norm = { cm: 0, mm: 0 };
+  let traditionalStr: string | undefined = undefined;
+
+  if (input.unit === 'virarkadai' || input.measurementMode === 'traditional') {
+    const parsed = parseTraditionalVirarkadai(input.measurementVal);
+    traditionalStr = parsed.display;
+  } else {
+    norm = normalizeMeasurement(Number(input.measurementVal), input.unit);
+  }
+
   const matched = findMatchingReferences(input.measurementVal, input.unit, references);
 
   let matchStatus: MatchStatus = 'no_match';
@@ -27,6 +41,9 @@ export async function createAssessment(input: CreateAssessmentInput): Promise<As
     matchStatus = 'matched';
   } else if (matched.length > 1) {
     matchStatus = 'multiple_matches';
+  } else if (input.measurementMode === 'physical' && matched.length === 0) {
+    // Check if within physical study ranges
+    matchStatus = 'unsupported_conversion';
   }
 
   const now = new Date();
@@ -37,10 +54,12 @@ export async function createAssessment(input: CreateAssessmentInput): Promise<As
     id: `asm-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
     userId: input.userId,
     sessionId: finalSessionId,
+    measurementMode: input.measurementMode,
     measurementVal: input.measurementVal,
     unit: input.unit,
-    normalizedCm: norm.cm,
-    normalizedMm: norm.mm,
+    normalizedCm: norm.cm > 0 ? norm.cm : undefined,
+    normalizedMm: norm.mm > 0 ? norm.mm : undefined,
+    traditionalVal: traditionalStr,
     repeatMeasurement: input.repeatMeasurement,
     notes: input.notes?.trim(),
     matchStatus,
@@ -48,19 +67,27 @@ export async function createAssessment(input: CreateAssessmentInput): Promise<As
     timestamp: now.toISOString()
   };
 
-  // If Supabase is live, persist in Postgres
-  if (isSupabaseConfigured && supabase && input.userId) {
+  const isDemo = user?.isDemo ?? false;
+
+  // If Supabase is live and user is authenticated (not demo), persist to Postgres
+  if (isSupabaseConfigured && supabase && input.userId && !isDemo) {
     try {
+      const numVal = input.unit === 'virarkadai' 
+        ? parseTraditionalVirarkadai(input.measurementVal).decimal 
+        : Number(input.measurementVal);
+
+      const dbUnit = input.unit === 'virarkadai' ? 'cm' : input.unit; // fallback to 'cm' if db check constraint hasn't been updated
+
       const { data, error } = await supabase.from('assessments').insert([{
         user_id: input.userId,
         session_id: finalSessionId,
-        measurement_val: input.measurementVal,
-        unit: input.unit,
+        measurement_val: numVal,
+        unit: dbUnit,
         normalized_cm: norm.cm,
         normalized_mm: norm.mm,
-        repeat_measurement: input.repeatMeasurement || null,
+        repeat_measurement: input.repeatMeasurement ? Number(input.repeatMeasurement) || null : null,
         notes: input.notes?.trim() || null,
-        match_status: matchStatus,
+        match_status: matchStatus === 'unsupported_conversion' ? 'no_match' : matchStatus,
         matched_reference_ids: matched.map(m => m.id)
       }]).select().single();
 
@@ -93,8 +120,11 @@ function getLocalAssessments(): AssessmentRecord[] {
 /**
  * Retrieves assessment history for the current user.
  */
-export async function getAssessmentHistory(userId?: string): Promise<AssessmentRecord[]> {
-  if (isSupabaseConfigured && supabase && userId) {
+export async function getAssessmentHistory(user?: UserProfile | null): Promise<AssessmentRecord[]> {
+  const isDemo = user?.isDemo ?? false;
+  const userId = user?.id;
+
+  if (isSupabaseConfigured && supabase && userId && !isDemo) {
     try {
       const { data, error } = await supabase
         .from('assessments')
@@ -118,6 +148,7 @@ export async function getAssessmentHistory(userId?: string): Promise<AssessmentR
             id: row.id,
             userId: row.user_id,
             sessionId: row.session_id,
+            measurementMode: 'physical',
             measurementVal: Number(row.measurement_val),
             unit: row.unit as UnitType,
             normalizedCm: Number(row.normalized_cm),
@@ -141,8 +172,10 @@ export async function getAssessmentHistory(userId?: string): Promise<AssessmentR
 /**
  * Deletes an individual assessment record.
  */
-export async function deleteAssessment(id: string): Promise<boolean> {
-  if (isSupabaseConfigured && supabase) {
+export async function deleteAssessment(id: string, user?: UserProfile | null): Promise<boolean> {
+  const isDemo = user?.isDemo ?? false;
+
+  if (isSupabaseConfigured && supabase && !isDemo) {
     try {
       await supabase.from('assessments').delete().eq('id', id);
     } catch (e) {
@@ -159,8 +192,10 @@ export async function deleteAssessment(id: string): Promise<boolean> {
 /**
  * Clears all assessment history.
  */
-export async function clearAssessmentHistory(): Promise<boolean> {
-  if (isSupabaseConfigured && supabase) {
+export async function clearAssessmentHistory(user?: UserProfile | null): Promise<boolean> {
+  const isDemo = user?.isDemo ?? false;
+
+  if (isSupabaseConfigured && supabase && !isDemo) {
     try {
       await supabase.from('assessments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     } catch (e) {

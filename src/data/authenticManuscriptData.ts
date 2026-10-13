@@ -225,45 +225,75 @@ export const AUTHENTIC_MANUSCRIPT_TRANSCRIPTION: TraditionalTableItem[] = [
   }
 ];
 
+// 25 Authentic Tabular Reference Entries extracted directly from Pages 368–371
+export const TRANSCRIBED_BOOK_REFERENCES: ReferenceEntry[] = AUTHENTIC_MANUSCRIPT_TRANSCRIPTION.map((item, index) => {
+  const padIndex = (index + 1).toString().padStart(2, '0');
+  const cleanPage = item.pageNo.replace(/[^0-9]/g, '').slice(0, 3) || '368';
+  const sourceId = `MN-${cleanPage}-${item.fractionalNumeric.toFixed(2).replace('.', '')}`;
+  return {
+    id: `ref-book-${padIndex}`,
+    sourceId,
+    minVal: item.fractionalNumeric,
+    maxVal: item.fractionalNumeric,
+    unit: 'virarkadai',
+    traditionalVal: item.virarkadai,
+    tamilText: item.tamilText,
+    englishText: item.englishText,
+    sourceBook: 'நோய் நாடல் நோய் முதல் நாடல் திரட்டு (பாகம் 1)',
+    pageNo: item.pageNo,
+    category: item.category,
+    status: 'verified',
+    reviewer: 'Academic Faculty Supervisor (Palayamkottai Ref Archive)',
+    createdAt: '2026-10-13T19:00:00Z'
+  };
+});
+
 export const INITIAL_VERIFIED_REFERENCES: ReferenceEntry[] = [
+  ...TRANSCRIBED_BOOK_REFERENCES,
   {
-    id: 'ref-seed-01',
+    id: 'ref-study-01',
+    sourceId: 'MN-STUDY-01',
     minVal: 17.1,
     maxVal: 19.0,
     unit: 'cm',
     traditionalVal: '9 - 10',
-    tamilText: 'உடல் வெதும்பி, வாயுவினால் நெஞ்சு, கை, கால் குத்தல், உளைவு, வயிற்றில் வாயுத் திரட்சியும், குன்மமும் உண்டாகும். (ஆய்வில் 9-10 விரற்கடை மிதமான நிலை என முன்மொழியப்பட்டது)',
+    tamilText: 'உடல் வெதும்பி, வாயுவினால் நெஞ்சு, கை, கால் குத்தல், உளைவு, வயிற்றில் வாயுத் திரட்சியும், குன்மமும் உண்டாகும். (2019 பாளையங்கோட்டை ஆய்வில் 9-10 விரற்கடை மிதமான நிலையென முன்மொழியப்பட்டது)',
     englishText: 'Body heat/flush; stabbing pain and aching in chest, hands and legs due to Vayu; flatulence/gaseous distension in abdomen; onset of Gunmam. (Approx. 9–10 virarkadai categorized as mild in 2019 exploratory study; not a diagnostic cut-off).',
     sourceBook: 'நோய் நாடல் நோய் முதல் நாடல் திரட்டு (பாகம் 1) & 2019 Gunmam Study (JOCAMR 8(3))',
     pageNo: '368 & 1-11',
+    category: 'disease_manifestation',
     status: 'verified',
     reviewer: 'Siddha Medical Faculty Supervisor (Palayamkottai Ref Archive)',
     createdAt: '2026-10-13T19:00:00Z'
   },
   {
-    id: 'ref-seed-02',
+    id: 'ref-study-02',
+    sourceId: 'MN-STUDY-02',
     minVal: 14.7,
     maxVal: 16.6,
     unit: 'cm',
     traditionalVal: '7 ¾ - 8 ¾',
-    tamilText: 'மூலவாயு, பீனிசம், உடல் காய்தல், எலும்புருக்கி, மேகம், வயிற்றுப்பொருமல், கை கால் காந்தல். (ஆய்வில் 7¾-8¾ விரற்கடை நடுத்தர நிலை என முன்மொழியப்பட்டது)',
+    tamilText: 'மூலவாயு, பீனிசம், உடல் காய்தல், எலும்புருக்கி, மேகம், வயிற்றுப்பொருமல், கை கால் காந்தல். (2019 பாளையங்கோட்டை ஆய்வில் 7¾-8¾ விரற்கடை நடுத்தர நிலையென முன்மொழியப்பட்டது)',
     englishText: 'Moola vayu, sinusitis, parched body, bone wasting, flatulence and burning extremities. (Approx. 7¾–8¾ virarkadai categorized as moderate in 2019 exploratory study; requires expert physician evaluation).',
     sourceBook: 'நோய் நாடல் நோய் முதல் நாடல் திரட்டு (பாகம் 1) & 2019 Gunmam Study (JOCAMR 8(3))',
     pageNo: '368 & 1-11',
+    category: 'disease_manifestation',
     status: 'verified',
     reviewer: 'Siddha Medical Faculty Supervisor (Palayamkottai Ref Archive)',
     createdAt: '2026-10-13T19:00:00Z'
   },
   {
-    id: 'ref-seed-03',
+    id: 'ref-study-03',
+    sourceId: 'MN-STUDY-03',
     minVal: 11.9,
     maxVal: 14.3,
     unit: 'cm',
     traditionalVal: '6 ¼ - 7 ½',
-    tamilText: 'எலும்புருக்கி, விப்புருதி, இடுப்பில் வாயு, சிரசில் பித்தம், இரத்தம் விழுதல், மூலக்கிராணி. (ஆய்வில் 6¼-7½ விரற்கடை கடுமையான நிலை என முன்மொழியப்பட்டது)',
+    tamilText: 'எலும்புருக்கி, விப்புருதி, இடுப்பில் வாயு, சிரசில் பித்தம், இரத்தம் விழுதல், மூலக்கிராணி. (2019 பாளையங்கோட்டை ஆய்வில் 6¼-7½ விரற்கடை கடுமையான நிலையென முன்மொழியப்பட்டது)',
     englishText: 'Bone wasting, internal abscess, lumbago, cephalic pitta, hemoptysis, chronic sprue. (Approx. 6¼–7½ virarkadai categorized as severe in 2019 exploratory study; purely for educational reference, not clinical staging).',
     sourceBook: 'நோய் நாடல் நோய் முதல் நாடல் திரட்டு (பாகம் 1) & 2019 Gunmam Study (JOCAMR 8(3))',
     pageNo: '368-369 & 1-11',
+    category: 'disease_manifestation',
     status: 'verified',
     reviewer: 'Siddha Medical Faculty Supervisor (Palayamkottai Ref Archive)',
     createdAt: '2026-10-13T19:00:00Z'

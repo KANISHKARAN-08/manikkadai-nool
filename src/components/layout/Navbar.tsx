@@ -64,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenA
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
               const Icon = item.icon;
@@ -72,13 +72,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenA
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 ${
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 ${
                     isActive
                       ? 'bg-[#194D42] text-[#D9AD54] border border-[#D9AD54]/50 shadow-inner'
                       : 'text-[#F6F3E9]/80 hover:text-[#FFFDF8] hover:bg-[#123C35]'
                   }`}
                 >
-                  {Icon && <Icon className="w-3.5 h-3.5 opacity-80" />}
+                  {Icon && <Icon className="w-3.5 h-3.5 opacity-80 shrink-0" />}
                   <span>{item.label}</span>
                 </button>
               );
@@ -90,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenA
             {/* Language Switcher Pill */}
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#D9AD54]/50 bg-[#123C35] text-xs font-bold text-[#D9AD54] hover:bg-[#D9AD54] hover:text-[#0B2925] transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#D9AD54]/50 bg-[#123C35] text-xs font-bold text-[#D9AD54] hover:bg-[#D9AD54] hover:text-[#0B2925] whitespace-nowrap transition-all shadow-sm"
               title="Toggle English / தமிழ்"
             >
               <Globe className="w-3.5 h-3.5" />
@@ -119,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenA
             ) : (
               <button
                 onClick={onOpenAuth}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#D9AD54] to-[#e4be6b] hover:from-[#e4be6b] hover:to-[#ebd18e] text-[#0B2925] text-xs font-bold transition-all shadow-md transform hover:-translate-y-0.5"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#D9AD54] to-[#e4be6b] hover:from-[#e4be6b] hover:to-[#ebd18e] text-[#0B2925] text-xs font-bold whitespace-nowrap transition-all shadow-md transform hover:-translate-y-0.5"
               >
                 <User className="w-3.5 h-3.5 text-[#0B2925]" />
                 <span>{t.nav.signIn}</span>
@@ -128,7 +128,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenA
           </div>
 
           {/* Mobile Menu & Language Toggle */}
-          <div className="flex items-center gap-2 xl:hidden">
+          <div className="flex items-center gap-2 lg:hidden">
             <button
               onClick={toggleLanguage}
               className="sm:hidden px-2.5 py-1 rounded-full border border-[#D9AD54]/50 text-xs font-bold text-[#D9AD54] bg-[#123C35]"
@@ -149,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenA
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="xl:hidden border-t border-[#194D42] bg-[#0B2925]/95 backdrop-blur-xl px-4 pt-3 pb-6 space-y-2 animate-fade-in">
+        <div className="lg:hidden border-t border-[#194D42] bg-[#0B2925]/95 backdrop-blur-xl px-4 pt-3 pb-6 space-y-2 animate-fade-in">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;

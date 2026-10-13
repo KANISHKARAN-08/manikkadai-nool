@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  getReferenceEntries, 
+  getReferenceEntriesWithMeta, 
   addReferenceEntry, 
+  updateReferenceStatus,
   deleteReferenceEntry, 
-  clearAllReferenceEntries 
+  clearAllReferenceEntries,
+  seedInitialReferencesToSupabase,
+  ReferenceFetchResult
 } from '../../lib/referenceStore';
 import { downloadCsv, parseCsv } from '../../lib/csvHelper';
 import { ReferenceEntry, UnitType, VerificationStatus } from '../../types';
@@ -20,15 +23,24 @@ import {
   FileText, 
   AlertTriangle,
   X,
-  BookOpen
+  BookOpen,
+  CheckCircle,
+  RotateCcw,
+  Database,
+  Sparkles,
+  Layers,
+  ArrowRight
 } from 'lucide-react';
 
 export const ReferenceView: React.FC = () => {
   const { t, language } = useLanguage();
-  const { user } = useAuth();
+  const { user, isLiveSupabase } = useAuth();
   const isAdmin = user?.role === 'admin';
 
   const [entries, setEntries] = useState<ReferenceEntry[]>([]);
+  const [metaInfo, setMetaInfo] = useState<ReferenceFetchResult | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUnit, setSelectedUnit] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -41,7 +53,7 @@ export const ReferenceView: React.FC = () => {
   const [traditionalVal, setTraditionalVal] = useState('');
   const [tamilText, setTamilText] = useState('');
   const [englishText, setEnglishText] = useState('');
-  const [sourceBook, setSourceBook] = useState('');
+  const [sourceBook, setSourceBook] = useState('நோய் நாடல் நோய் முதல் நாடல் திரட்டு (பாகம் 1)');
   const [pageNo, setPageNo] = useState('');
   const [reviewer, setReviewer] = useState('');
   const [status, setStatus] = useState<VerificationStatus>('verified');
@@ -51,9 +63,23 @@ export const ReferenceView: React.FC = () => {
   }, [isAdmin]);
 
   const loadEntries = async () => {
-    const data = await getReferenceEntries(isAdmin);
-    setEntries(data);
+    setLoading(true);
+    try {
+      const data = await getReferenceEntriesWithMeta(isAdmin);
+      setEntries(data.entries);
+      setMetaInfo(data);
+    } catch (err) {
+      console.error('Failed to load reference entries', err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Status counts
+  const totalCount = entries.length;
+  const verifiedCount = entries.filter(e => e.status === 'verified').length;
+  const pendingCount = entries.filter(e => e.status === 'pending_review').length;
+  const draftCount = entries.filter(e => e.status === 'draft').length;
 
   // Filtered entries
   const filteredEntries = entries.filter((e) => {
@@ -65,6 +91,12 @@ export const ReferenceView: React.FC = () => {
       e.tamilText.toLowerCase().includes(q) ||
       (e.englishText && e.englishText.toLowerCase().includes(q)) ||
       (e.traditionalVal && e.traditionalVal.toLowerCase().includes(q)) ||
+      (e.traditionalVal && e.traditionalVal.replace(/\s+/g, '').includes(q.replace(/\s+/g, ''))) ||
+      (e.traditionalVal && (q.includes('1/2') || q.includes('.5')) && e.traditionalVal.includes('½')) ||
+      (e.traditionalVal && (q.includes('1/4') || q.includes('.25')) && e.traditionalVal.includes('¼')) ||
+      (e.traditionalVal && (q.includes('3/4') || q.includes('.75')) && e.traditionalVal.includes('¾')) ||
+      (e.category && e.category.toLowerCase().includes(q)) ||
+      (e.pageNo && e.pageNo.includes(q)) ||
       e.sourceBook.toLowerCase().includes(q) ||
       e.reviewer.toLowerCase().includes(q);
 
@@ -87,55 +119,102 @@ export const ReferenceView: React.FC = () => {
       return;
     }
 
-    const res = await addReferenceEntry({
-      minVal: min,
-      maxVal: max,
-      unit,
-      traditionalVal: traditionalVal.trim() || undefined,
-      tamilText: tamilText.trim(),
-      englishText: englishText.trim() || undefined,
-      sourceBook: sourceBook.trim(),
-      pageNo: pageNo.trim() || undefined,
-      status,
-      reviewer: reviewer.trim() || (user?.fullName || 'Academic Reviewer')
-    }, user?.id);
+    setActionLoading(true);
+    try {
+      const res = await addReferenceEntry({
+        minVal: min,
+        maxVal: max,
+        unit,
+        traditionalVal: traditionalVal.trim() || undefined,
+        tamilText: tamilText.trim(),
+        englishText: englishText.trim() || undefined,
+        sourceBook: sourceBook.trim(),
+        pageNo: pageNo.trim() || undefined,
+        status,
+        reviewer: reviewer.trim() || (user?.fullName || 'Faculty Reviewer')
+      }, user);
 
-    if (!res.success) {
-      alert(`Error saving reference entry: ${res.error}`);
-      return;
+      if (!res.success) {
+        alert(`Error saving reference entry: ${res.error}`);
+        return;
+      }
+
+      if (res.overlapWarning) {
+        alert(t.references.overlapWarning);
+      } else {
+        alert(t.references.savedSuccess);
+      }
+
+      // Reset and reload
+      setModalOpen(false);
+      setMinVal('');
+      setMaxVal('');
+      setTraditionalVal('');
+      setTamilText('');
+      setEnglishText('');
+      setPageNo('');
+      setReviewer('');
+      loadEntries();
+    } finally {
+      setActionLoading(false);
     }
+  };
 
-    if (res.overlapWarning) {
-      alert(t.references.overlapWarning);
-    } else {
-      alert(t.references.savedSuccess);
+  // Status transition handler for review workflow
+  const handleStatusChange = async (id: string, newStatus: VerificationStatus) => {
+    setActionLoading(true);
+    try {
+      const reviewerName = user?.fullName || 'Faculty Reviewer';
+      const res = await updateReferenceStatus(id, newStatus, reviewerName, user);
+      if (!res.success) {
+        alert(`Status update failed: ${res.error}`);
+      } else {
+        loadEntries();
+      }
+    } finally {
+      setActionLoading(false);
     }
+  };
 
-    // Reset and reload
-    setModalOpen(false);
-    setMinVal('');
-    setMaxVal('');
-    setTraditionalVal('');
-    setTamilText('');
-    setEnglishText('');
-    setSourceBook('');
-    setPageNo('');
-    setReviewer('');
-    loadEntries();
+  // Seed baseline to Supabase
+  const handleSeedToSupabase = async () => {
+    if (!confirm('Seed authentic verified manuscript baseline records into the live Supabase PostgreSQL database?')) return;
+    setActionLoading(true);
+    try {
+      const res = await seedInitialReferencesToSupabase(user);
+      if (res.success) {
+        alert(`Successfully seeded ${res.count} authentic reference entries into Supabase!`);
+        loadEntries();
+      } else {
+        alert(`Seeding failed: ${res.error}`);
+      }
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   // Delete single entry
   const handleDelete = async (id: string) => {
     if (!confirm(t.references.deleteConfirm)) return;
-    await deleteReferenceEntry(id);
-    loadEntries();
+    setActionLoading(true);
+    try {
+      await deleteReferenceEntry(id, user);
+      loadEntries();
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   // Clear all
   const handleClearAll = async () => {
     if (!confirm(t.references.clearConfirm)) return;
-    await clearAllReferenceEntries();
-    loadEntries();
+    setActionLoading(true);
+    try {
+      await clearAllReferenceEntries(user);
+      loadEntries();
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   // Export to CSV
@@ -175,6 +254,7 @@ export const ReferenceView: React.FC = () => {
       const dataRows = hasHeader ? rows.slice(1) : rows;
 
       let importCount = 0;
+      setActionLoading(true);
       for (const row of dataRows) {
         const min = parseFloat(row[0]);
         const max = parseFloat(row[1]);
@@ -182,10 +262,12 @@ export const ReferenceView: React.FC = () => {
         const trad = row[3] || undefined;
         const tamil = row[4] || '';
         const eng = row[5] || undefined;
-        const src = row[6] || 'Imported Reference';
+        const src = row[6] || 'Imported Manuscript Reference';
         const page = row[7] || undefined;
-        const rev = row[8] || 'CSV Import Reviewer';
-        const st = (row[9] as VerificationStatus) || 'pending_review';
+        const rev = row[8] || (user?.fullName || 'CSV Import Reviewer');
+        // Safeguard: Never silently convert an imported row into verified without explicit reviewer check
+        const parsedStatus = (row[9] as VerificationStatus);
+        const st: VerificationStatus = parsedStatus === 'verified' && isAdmin ? 'verified' : 'pending_review';
 
         if (!isNaN(min) && !isNaN(max) && min <= max && tamil.trim()) {
           await addReferenceEntry({
@@ -199,16 +281,17 @@ export const ReferenceView: React.FC = () => {
             pageNo: page?.trim(),
             reviewer: rev.trim(),
             status: st
-          }, user?.id);
+          }, user);
           importCount++;
         }
       }
 
-      alert(`Successfully imported ${importCount} reference entries.`);
+      alert(`Successfully imported ${importCount} reference entries (set to pending review for verification).`);
       loadEntries();
     } catch (err: any) {
       alert(`CSV import error: ${err.message}`);
     } finally {
+      setActionLoading(false);
       e.target.value = '';
     }
   };
@@ -237,7 +320,8 @@ export const ReferenceView: React.FC = () => {
             {isAdmin && (
               <button
                 onClick={() => setModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D9AD54] to-[#E5C170] hover:from-[#C49D44] hover:to-[#D5B160] text-[#0B2925] font-bold text-xs shadow-md transition-all"
+                disabled={actionLoading}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#D9AD54] to-[#E5C170] hover:from-[#C49D44] hover:to-[#D5B160] text-[#0B2925] font-bold text-xs shadow-md transition-all disabled:opacity-50"
               >
                 <Plus className="w-4 h-4 text-[#0B2925]" />
                 <span>{t.references.addEntryBtn}</span>
@@ -246,7 +330,8 @@ export const ReferenceView: React.FC = () => {
 
             <button
               onClick={handleExportCsv}
-              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#FFFDF8] text-[#123C35] border border-[#E3E4DA] font-bold text-xs hover:bg-[#E8EFE8] transition-all"
+              disabled={entries.length === 0}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#FFFDF8] text-[#123C35] border border-[#E3E4DA] font-bold text-xs hover:bg-[#E8EFE8] transition-all disabled:opacity-50"
             >
               <Download className="w-4 h-4 text-[#194D42]" />
               <span>{t.references.exportCsv}</span>
@@ -267,13 +352,102 @@ export const ReferenceView: React.FC = () => {
 
                 <button
                   onClick={handleClearAll}
-                  className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#8B2D2D]/10 hover:bg-[#8B2D2D] text-[#8B2D2D] hover:text-white font-bold text-xs transition-all"
+                  disabled={actionLoading || entries.length === 0}
+                  className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#8B2D2D]/10 hover:bg-[#8B2D2D] text-[#8B2D2D] hover:text-white font-bold text-xs transition-all disabled:opacity-50"
                   title={t.references.clearAll}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </>
             )}
+
+            <button
+              onClick={loadEntries}
+              disabled={loading}
+              className="p-2.5 rounded-xl bg-[#FFFDF8] border border-[#E3E4DA] text-[#123C35] hover:bg-[#E8EFE8] transition-all"
+              title="Refresh repository"
+            >
+              <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* Database & Repository Provenance Banner */}
+        {metaInfo?.isLiveDbEmpty && (
+          <div className="p-4 rounded-2xl bg-[#FFF4D7] border border-[#F2D48E] text-[#87560B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in">
+            <div className="flex items-start gap-3">
+              <Database className="w-5 h-5 shrink-0 text-[#D97706] mt-0.5" />
+              <div>
+                <strong className="block text-xs font-bold text-[#123C35]">
+                  Live Database Status: PostgreSQL Connected (Zero Remote Records)
+                </strong>
+                <p className="text-xs text-[#87560B] mt-0.5 leading-relaxed">
+                  The connected Supabase table <code className="bg-white/80 px-1 py-0.5 rounded font-mono text-[11px]">reference_entries</code> is currently empty. Serving authentic manuscript baseline mappings from <em className="font-semibold">Noi Nadal Noi Mudal Nadal Thirattu</em> (Palayamkottai Siddha Medical College Reference Archive) via fallback cache so assessments remain fully functional.
+                </p>
+              </div>
+            </div>
+
+            {isAdmin && !user?.isDemo && (
+              <button
+                onClick={handleSeedToSupabase}
+                disabled={actionLoading}
+                className="shrink-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#123C35] text-[#D9AD54] hover:bg-[#194D42] text-xs font-bold transition-all shadow-sm"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#D9AD54]" />
+                <span>Seed Baseline to Supabase</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Status Metrics Strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="p-4 rounded-2xl bg-[#FFFDF8] border border-[#E3E4DA] shadow-sm">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#68736F] block">
+              Total References
+            </span>
+            <span className="text-2xl font-serif font-bold text-[#123C35] mt-1 block">
+              {totalCount}
+            </span>
+            <span className="text-[11px] text-[#829B83] mt-0.5 block">
+              Across cm & mm ranges
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#FFFDF8] border border-[#E3E4DA] shadow-sm">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#194D42] block">
+              Verified Entries
+            </span>
+            <span className="text-2xl font-serif font-bold text-[#194D42] mt-1 block">
+              {verifiedCount}
+            </span>
+            <span className="text-[11px] text-[#829B83] mt-0.5 block">
+              Approved for assessment
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#FFFDF8] border border-[#E3E4DA] shadow-sm">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#D97706] block">
+              Pending Review
+            </span>
+            <span className="text-2xl font-serif font-bold text-[#D97706] mt-1 block">
+              {pendingCount}
+            </span>
+            <span className="text-[11px] text-[#829B83] mt-0.5 block">
+              Awaiting faculty audit
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#FFFDF8] border border-[#E3E4DA] shadow-sm">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#68736F] block">
+              Draft Entries
+            </span>
+            <span className="text-2xl font-serif font-bold text-[#68736F] mt-1 block">
+              {draftCount}
+            </span>
+            <span className="text-[11px] text-[#829B83] mt-0.5 block">
+              Unpublished drafts
+            </span>
           </div>
         </div>
 
@@ -297,6 +471,7 @@ export const ReferenceView: React.FC = () => {
               className="px-3 py-2 rounded-xl border border-[#CBD2C9] bg-white text-xs font-semibold text-[#123C35]"
             >
               <option value="all">{t.references.filterUnitAll}</option>
+              <option value="virarkadai">Virarkadai (விரற்கடை) only</option>
               <option value="cm">cm only</option>
               <option value="mm">mm only</option>
             </select>
@@ -316,27 +491,45 @@ export const ReferenceView: React.FC = () => {
 
         {/* References Table */}
         <div className="rounded-2xl bg-[#FFFDF8] border border-[#E3E4DA] shadow-card overflow-hidden">
-          {filteredEntries.length === 0 ? (
-            <div className="p-12 text-center space-y-3">
-              <BookOpen className="w-10 h-10 text-[#829B83] mx-auto opacity-60" />
-              <p className="text-sm font-semibold text-[#68736F]">
-                {t.references.noEntriesFound}
+          {loading ? (
+            <div className="p-16 text-center space-y-3">
+              <RotateCcw className="w-8 h-8 text-[#D9AD54] animate-spin mx-auto" />
+              <p className="text-xs font-mono uppercase tracking-wider text-[#68736F]">
+                Loading reference repository...
               </p>
-              <p className="text-xs text-[#829B83] max-w-md mx-auto">
-                {t.references.emptyNotice}
-              </p>
+            </div>
+          ) : filteredEntries.length === 0 ? (
+            <div className="p-12 text-center space-y-4">
+              <BookOpen className="w-12 h-12 text-[#829B83] mx-auto opacity-60" />
+              <div className="space-y-1">
+                <p className="text-sm font-serif font-bold text-[#123C35]">
+                  {t.references.noEntriesFound}
+                </p>
+                <p className="text-xs text-[#68736F] max-w-md mx-auto">
+                  {t.references.emptyNotice}
+                </p>
+              </div>
+              {isAdmin && (
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#123C35] text-[#D9AD54] text-xs font-bold hover:bg-[#194D42]"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add First Entry</span>
+                </button>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b-2 border-[#123C35] text-[#123C35] bg-[#F6F3E9]">
-                    <th className="py-3 px-4 font-bold">{t.references.rangeCol}</th>
-                    <th className="py-3 px-4 font-bold">{t.references.traditionalCol}</th>
-                    <th className="py-3 px-4 font-bold">{t.references.textCol}</th>
-                    <th className="py-3 px-4 font-bold">{t.references.sourceCol}</th>
-                    <th className="py-3 px-4 font-bold">{t.references.statusCol}</th>
-                    {isAdmin && <th className="py-3 px-4 font-bold text-right">{t.references.actionsCol}</th>}
+                    <th className="py-3.5 px-4 font-bold">{t.references.rangeCol}</th>
+                    <th className="py-3.5 px-4 font-bold">{t.references.traditionalCol}</th>
+                    <th className="py-3.5 px-4 font-bold">{t.references.textCol}</th>
+                    <th className="py-3.5 px-4 font-bold">{t.references.sourceCol}</th>
+                    <th className="py-3.5 px-4 font-bold">{t.references.statusCol}</th>
+                    {isAdmin && <th className="py-3.5 px-4 font-bold text-right">{t.references.actionsCol}</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E3E4DA]">
@@ -351,7 +544,7 @@ export const ReferenceView: React.FC = () => {
                       {/* Virarkadai */}
                       <td className="py-4 px-4 align-top whitespace-nowrap">
                         {entry.traditionalVal ? (
-                          <span className="inline-block px-2 py-0.5 rounded bg-[#123C35]/10 text-[#123C35] font-bold font-mono">
+                          <span className="inline-block px-2.5 py-1 rounded bg-[#123C35]/10 text-[#123C35] font-bold font-mono">
                             {entry.traditionalVal} விரற்கடை
                           </span>
                         ) : (
@@ -360,12 +553,12 @@ export const ReferenceView: React.FC = () => {
                       </td>
 
                       {/* Tamil & English Text */}
-                      <td className="py-4 px-4 align-top max-w-md space-y-1">
+                      <td className="py-4 px-4 align-top max-w-md space-y-1.5">
                         <div className="font-tamil text-sm text-[#1E2926] leading-relaxed font-medium">
                           {entry.tamilText}
                         </div>
                         {entry.englishText && (
-                          <div className="text-xs text-[#68736F] leading-relaxed italic">
+                          <div className="text-xs text-[#68736F] leading-relaxed italic bg-white/70 p-2 rounded-lg border border-[#E3E4DA]">
                             {entry.englishText}
                           </div>
                         )}
@@ -374,29 +567,71 @@ export const ReferenceView: React.FC = () => {
                       {/* Source & Reviewer */}
                       <td className="py-4 px-4 align-top text-xs text-[#68736F] whitespace-nowrap">
                         <div className="font-semibold text-[#123C35]">{entry.sourceBook}</div>
-                        {entry.pageNo && <div>p. {entry.pageNo}</div>}
-                        <div className="text-[11px] text-[#829B83] mt-0.5">Rev: {entry.reviewer}</div>
+                        {entry.pageNo && <div className="text-[11px]">p. {entry.pageNo}</div>}
+                        <div className="text-[11px] text-[#829B83] mt-1 flex items-center gap-1">
+                          <span>Reviewer:</span>
+                          <span className="font-medium text-[#1E2926]">{entry.reviewer}</span>
+                        </div>
                       </td>
 
                       {/* Status */}
                       <td className="py-4 px-4 align-top whitespace-nowrap">
                         {entry.status === 'verified' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E1ECE3] text-[#123C35] font-bold text-[11px]">
-                            <ShieldCheck className="w-3 h-3 text-[#194D42]" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E1ECE3] text-[#123C35] font-bold text-[11px]">
+                            <ShieldCheck className="w-3.5 h-3.5 text-[#194D42]" />
                             <span>{t.references.statusVerified}</span>
                           </span>
                         )}
                         {entry.status === 'pending_review' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFF4D7] text-[#87560B] font-bold text-[11px]">
-                            <Clock className="w-3 h-3 text-[#D97706]" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF4D7] text-[#87560B] font-bold text-[11px]">
+                            <Clock className="w-3.5 h-3.5 text-[#D97706]" />
                             <span>{t.references.statusPending}</span>
                           </span>
                         )}
                         {entry.status === 'draft' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E8EFE8] text-[#68736F] font-bold text-[11px]">
-                            <FileText className="w-3 h-3" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E8EFE8] text-[#68736F] font-bold text-[11px]">
+                            <FileText className="w-3.5 h-3.5" />
                             <span>{t.references.statusDraft}</span>
                           </span>
+                        )}
+
+                        {/* Reviewer Action Buttons */}
+                        {isAdmin && (
+                          <div className="mt-2 flex flex-col gap-1">
+                            {entry.status === 'draft' && (
+                              <button
+                                onClick={() => handleStatusChange(entry.id, 'pending_review')}
+                                className="text-[10px] font-semibold text-[#D97706] hover:underline text-left"
+                              >
+                                Submit for Review →
+                              </button>
+                            )}
+                            {entry.status === 'pending_review' && (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleStatusChange(entry.id, 'verified')}
+                                  className="text-[10px] font-bold text-[#194D42] hover:underline"
+                                >
+                                  ✓ Verify & Publish
+                                </button>
+                                <span className="text-[#829B83]">|</span>
+                                <button
+                                  onClick={() => handleStatusChange(entry.id, 'draft')}
+                                  className="text-[10px] font-medium text-[#8B2D2D] hover:underline"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            )}
+                            {entry.status === 'verified' && (
+                              <button
+                                onClick={() => handleStatusChange(entry.id, 'draft')}
+                                className="text-[10px] text-[#68736F] hover:underline text-left"
+                              >
+                                Revoke to Draft
+                              </button>
+                            )}
+                          </div>
                         )}
                       </td>
 
@@ -454,11 +689,13 @@ export const ReferenceView: React.FC = () => {
                   <input
                     type="number"
                     step="0.1"
+                    min="1"
+                    max="1000"
                     required
                     value={minVal}
                     onChange={(e) => setMinVal(e.target.value)}
-                    placeholder="e.g. 14.5"
-                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm"
+                    placeholder="e.g. 14.7"
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm focus:outline-none focus:ring-2 focus:ring-[#123C35]"
                   />
                 </div>
 
@@ -469,11 +706,13 @@ export const ReferenceView: React.FC = () => {
                   <input
                     type="number"
                     step="0.1"
+                    min="1"
+                    max="1000"
                     required
                     value={maxVal}
                     onChange={(e) => setMaxVal(e.target.value)}
-                    placeholder="e.g. 16.0"
-                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm"
+                    placeholder="e.g. 16.6"
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm focus:outline-none focus:ring-2 focus:ring-[#123C35]"
                   />
                 </div>
 
@@ -484,15 +723,15 @@ export const ReferenceView: React.FC = () => {
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value as UnitType)}
-                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm font-bold text-[#123C35]"
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm font-semibold text-[#123C35]"
                   >
-                    <option value="cm">cm</option>
-                    <option value="mm">mm</option>
+                    <option value="cm">cm (centimeter)</option>
+                    <option value="mm">mm (millimeter)</option>
                   </select>
                 </div>
               </div>
 
-              {/* Traditional Virarkadai Value */}
+              {/* Traditional Virarkadai */}
               <div>
                 <label className="block text-xs font-bold uppercase text-[#194D42] mb-1">
                   {t.admin.traditionalField}
@@ -501,12 +740,12 @@ export const ReferenceView: React.FC = () => {
                   type="text"
                   value={traditionalVal}
                   onChange={(e) => setTraditionalVal(e.target.value)}
-                  placeholder="e.g. 8 ¾ or 7 ½ - 8 ¾"
-                  className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm"
+                  placeholder="e.g. 7 ¾ - 8 ¾"
+                  className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm focus:outline-none focus:ring-2 focus:ring-[#123C35]"
                 />
               </div>
 
-              {/* Tamil Text */}
+              {/* Tamil Interpretation */}
               <div>
                 <label className="block text-xs font-bold uppercase text-[#194D42] mb-1">
                   {t.admin.tamilField} *
@@ -516,12 +755,12 @@ export const ReferenceView: React.FC = () => {
                   required
                   value={tamilText}
                   onChange={(e) => setTamilText(e.target.value)}
-                  placeholder="அசல் தமிழ் மருத்துவ உரை / பாடல் விளக்கம்..."
-                  className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm font-tamil"
+                  placeholder="உடல் வெதும்பி, வாயுவினால் நெஞ்சு குத்தல்..."
+                  className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm font-tamil focus:outline-none focus:ring-2 focus:ring-[#123C35]"
                 />
               </div>
 
-              {/* English Text */}
+              {/* English Translation */}
               <div>
                 <label className="block text-xs font-bold uppercase text-[#194D42] mb-1">
                   {t.admin.englishField}
@@ -530,14 +769,14 @@ export const ReferenceView: React.FC = () => {
                   rows={2}
                   value={englishText}
                   onChange={(e) => setEnglishText(e.target.value)}
-                  placeholder="Reviewed English translation or academic notes..."
-                  className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm"
+                  placeholder="Body heat, chest stabbing pain due to Vayu..."
+                  className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm focus:outline-none focus:ring-2 focus:ring-[#123C35]"
                 />
               </div>
 
-              {/* Source & Reviewer */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+              {/* Source Book & Page */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-bold uppercase text-[#194D42] mb-1">
                     {t.admin.sourceField} *
                   </label>
@@ -546,37 +785,36 @@ export const ReferenceView: React.FC = () => {
                     required
                     value={sourceBook}
                     onChange={(e) => setSourceBook(e.target.value)}
-                    placeholder="Book title, edition"
-                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm"
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm focus:outline-none focus:ring-2 focus:ring-[#123C35]"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold uppercase text-[#194D42] mb-1">
-                    Page Number
+                    Page No.
                   </label>
                   <input
                     type="text"
                     value={pageNo}
                     onChange={(e) => setPageNo(e.target.value)}
                     placeholder="e.g. 368"
-                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm"
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm focus:outline-none focus:ring-2 focus:ring-[#123C35]"
                   />
                 </div>
               </div>
 
+              {/* Reviewer & Status */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase text-[#194D42] mb-1">
-                    {t.admin.reviewerField} *
+                    {t.admin.reviewerField}
                   </label>
                   <input
                     type="text"
-                    required
                     value={reviewer}
                     onChange={(e) => setReviewer(e.target.value)}
-                    placeholder="Faculty member / physician"
-                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm"
+                    placeholder={user?.fullName || 'Faculty Reviewer'}
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm focus:outline-none focus:ring-2 focus:ring-[#123C35]"
                   />
                 </div>
 
@@ -587,34 +825,34 @@ export const ReferenceView: React.FC = () => {
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as VerificationStatus)}
-                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm font-semibold"
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBD2C9] text-sm font-semibold text-[#123C35]"
                   >
-                    <option value="verified">Verified (Eligible for Assessment Matching)</option>
-                    <option value="pending_review">Pending Review</option>
-                    <option value="draft">Draft</option>
+                    <option value="verified">{t.references.statusVerified}</option>
+                    <option value="pending_review">{t.references.statusPending}</option>
+                    <option value="draft">{t.references.statusDraft}</option>
                   </select>
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Modal Actions */}
               <div className="pt-4 border-t border-[#E3E4DA] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#CBD2C9] text-xs font-bold text-[#68736F]"
+                  className="px-4 py-2.5 rounded-xl border border-[#E3E4DA] text-xs font-bold text-[#68736F] hover:bg-[#F6F3E9]"
                 >
                   {t.admin.cancelBtn}
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-xl bg-[#123C35] text-[#FFFDF8] text-xs font-bold hover:bg-[#194D42] shadow-sm"
+                  disabled={actionLoading}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D9AD54] to-[#E5C170] hover:from-[#C49D44] hover:to-[#D5B160] text-[#0B2925] font-bold text-xs shadow-md transition-all disabled:opacity-50"
                 >
-                  {t.admin.saveBtn}
+                  {actionLoading ? 'Saving...' : t.admin.saveBtn}
                 </button>
               </div>
 
             </form>
-
           </div>
         </div>
       )}
