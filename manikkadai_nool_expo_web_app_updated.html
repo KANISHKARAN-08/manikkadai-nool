@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123c35">
+<title>Manikkadai Nool | Siddha Expo</title>
+<style>
+:root{--green:#123c35;--green2:#1e6658;--cream:#f6f3e9;--card:#fffdf8;--gold:#d9ad54;--ink:#1e2926;--muted:#68736f;--line:#e3e4da;--warn:#fff4d7}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:linear-gradient(135deg,var(--green),#205f50);color:white;padding:25px 18px 22px;border-bottom:4px solid var(--gold)}
+.wrap{max-width:980px;margin:auto}.brand{font-size:12px;text-transform:uppercase;letter-spacing:.17em;color:#e8d7a7;font-weight:800}.hero h1{font-size:clamp(25px,5vw,39px);line-height:1.1;margin:9px 0}.hero p{margin:8px 0 0;color:#e3eee9;max-width:680px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.tab{border:1px solid #ffffff55;background:#ffffff12;color:#fff;padding:9px 13px;border-radius:999px;font-weight:700;cursor:pointer}.tab.active{background:#fff;color:var(--green)}
+main{padding:20px 14px 42px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 5px 20px #233c3010}.wide{grid-column:1/-1}h2{font-size:20px;margin:0 0 12px;color:var(--green)}h3{font-size:16px;margin:16px 0 8px}
+label{display:block;font-size:13px;font-weight:800;color:#485650;margin:13px 0 5px}input,select,textarea{width:100%;border:1px solid #cbd2c9;border-radius:10px;padding:12px;font:inherit;background:white;color:var(--ink)}input:focus,select:focus,textarea:focus{outline:3px solid #1e66582b;border-color:var(--green2)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:10px}.btn{border:0;border-radius:10px;background:var(--green);color:white;padding:12px 15px;font:inherit;font-weight:800;cursor:pointer;margin-top:14px}.btn:hover{background:var(--green2)}.btn.secondary{background:#e8eee8;color:var(--green)}.btn.gold{background:#f2dfad;color:#47330a}.btn.danger{background:#8b2d2d}.muted{color:var(--muted);font-size:13px}.notice{padding:13px 14px;border-radius:12px;background:var(--warn);border:1px solid #ead59a;font-size:13px;margin-top:14px}.result{border:1px solid var(--line);background:#f4f8f2;border-radius:14px;padding:16px;margin-top:16px}.result strong{color:var(--green)}.pill{display:inline-block;border-radius:999px;padding:4px 9px;background:#e1ece3;color:var(--green);font-size:12px;font-weight:800}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}th,td{text-align:left;border-bottom:1px solid var(--line);padding:9px 7px;vertical-align:top}th{color:var(--green);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.hidden{display:none!important}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions .btn{margin-top:8px}.small{font-size:12px}.empty{padding:16px;background:#f5f5ef;border-radius:10px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:0 16px 28px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.row{grid-template-columns:1fr}.card{padding:16px}header{padding-top:20px}}
+@media print{header,nav,.no-print,footer{display:none!important}body{background:white}.card{box-shadow:none;break-inside:avoid}.grid{display:block}.card{margin-bottom:12px}}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap hero">
+<div class="brand">Siddha • Pathology Expo</div>
+<h1 id="title">Manikkadai Nool Assessment</h1>
+<p id="subtitle">A digital educational demonstration of the traditional Siddha wrist-thread reference method.</p>
+<nav class="no-print">
+<button class="tab active" data-page="assessment" id="tabAssessment">Assessment</button>
+<button class="tab" data-page="references" id="tabReferences">Reference Table</button>
+<button class="tab" data-page="history" id="tabHistory">Session History</button>
+<button class="tab" id="languageBtn">தமிழ் / English</button>
+</nav>
+</div>
+</header>
+<main class="wrap">
+<section id="page-assessment" class="page">
+<div class="grid">
+<div class="card">
+<h2 id="measureHeading">Record a measurement</h2>
+<p class="muted" id="measureIntro">Measure around the wrist with a non-stretch thread, then measure the marked thread against a ruler. This is circumference, not straight-line diameter.</p>
+<form id="assessmentForm">
+<label for="sessionId" id="sessionLabel">Anonymous session ID (optional)</label>
+<input id="sessionId" maxlength="40" placeholder="e.g. EXPO-001">
+<div class="row">
+<div><label for="measurement" id="measurementLabel">Wrist circumference</label><input id="measurement" type="number" min="0" max="100" step="0.1" required placeholder="e.g. 16.5"></div>
+<div><label for="unit" id="unitLabel">Unit</label><select id="unit"><option value="cm">cm</option><option value="mm">mm</option></select></div>
+</div>
+<label for="repeatMeasurement" id="repeatLabel">Repeat measurement (optional)</label>
+<input id="repeatMeasurement" type="number" min="0" max="1000" step="0.1" placeholder="Repeat reading">
+<label for="notes" id="notesLabel">Notes (optional; do not enter identifying or sensitive details)</label>
+<textarea id="notes" rows="2" maxlength="300" placeholder="Measurement method / expo notes"></textarea>
+<button class="btn" type="submit" id="lookupBtn">Find reference entry</button>
+</form>
+<div class="notice" id="safetyNotice"><strong>Educational use only.</strong> Wrist circumference alone cannot diagnose a disease. This prototype does not provide medical advice or prescribe treatment.</div>
+</div>
+<div class="card">
+<h2 id="stepsHeading">Measurement steps</h2>
+<ol id="stepsList">
+<li>Explain the demonstration and obtain consent.</li>
+<li>Ask the visitor to relax the hand and wrist; remove tight accessories.</li>
+<li>Use a clean, non-stretch thread at the landmark approved by your Siddha faculty supervisor.</li>
+<li>Wrap snugly without compressing the skin and mark where the ends meet.</li>
+<li>Measure the marked thread with a ruler and record the circumference.</li>
+<li>Repeat once to check consistency, then use the verified reference table.</li>
+</ol>
+<div class="notice" id="reviewNotice">The photographed book tables must be transcribed and checked by a qualified Siddha physician before use. No unverified diagnostic interpretation is included by default.</div>
+</div>
+<div class="card wide">
+<h2 id="resultHeading">Assessment result</h2>
+<div id="resultArea" class="empty">Enter a measurement and select “Find reference entry”.</div>
+<div class="actions no-print">
+<button class="btn secondary" id="printBtn" type="button">Print / Save as PDF</button>
+<button class="btn secondary" id="exportHistoryBtn" type="button">Export session history (CSV)</button>
+</div>
+</div>
+</div>
+</section>
+
+<section id="page-references" class="page hidden">
+<div class="grid">
+<div class="card">
+<h2 id="referenceHeading">Verified reference table</h2>
+<p class="muted" id="referenceIntro">Add only entries transcribed from the original source and verified by a qualified Siddha physician. Use lower/upper circumference bounds in the same unit.</p>
+<form id="referenceForm">
+<label for="refMin" id="minLabel">Minimum circumference (inclusive)</label><input id="refMin" type="number" min="0" step="0.1" required>
+<label for="refMax" id="maxLabel">Maximum circumference (inclusive)</label><input id="refMax" type="number" min="0" step="0.1" required>
+<label for="refUnit" id="refUnitLabel">Unit</label><select id="refUnit"><option value="cm">cm</option><option value="mm">mm</option></select>
+<label for="refTamil" id="tamilLabel">Traditional text (Tamil)</label><textarea id="refTamil" rows="3" maxlength="1500" required></textarea>
+<label for="refEnglish" id="englishLabel">English translation / note (optional)</label><textarea id="refEnglish" rows="3" maxlength="1500"></textarea>
+<div class="row">
+<div><label for="source" id="sourceLabel">Source / page</label><input id="source" maxlength="200" required placeholder="Book title, edition, page"></div>
+<div><label for="reviewer" id="reviewerLabel">Verified by</label><input id="reviewer" maxlength="100" required placeholder="Faculty / physician"></div>
+</div>
+<button class="btn" type="submit" id="addReferenceBtn">Add verified entry</button>
+</form>
+<div class="actions no-print">
+<button class="btn secondary" id="exportRefsBtn" type="button">Export reference CSV</button>
+<label class="btn secondary" for="importFile" style="display:inline-block;margin-top:8px;cursor:pointer">Import reference CSV</label>
+<input id="importFile" type="file" accept=".csv,text/csv" class="hidden">
+</div>
+<p class="muted small" id="csvHint">CSV columns: min,max,unit,tamil,english,source,reviewer. Import only verified data.</p>
+</div>
+<div class="card">
+<h2 id="entriesHeading">Saved reference entries</h2>
+<div id="referenceTable"></div>
+<div class="notice" id="noReferenceNotice">No reference rows are preloaded because the supplied photographs need careful transcription and expert verification. The app will not guess missing interpretations.</div>
+<button class="btn danger no-print" id="clearRefsBtn" type="button">Clear all reference entries</button>
+</div>
+</div>
+<div class="card wide" style="margin-top:16px">
+  <h2>குன்மம் தொடர்பான மணிக்கடை நூல் அளவுகள் — மரபு ஆதாரம், ஆய்வு மற்றும் மருத்துவ வரம்புகள்</h2>
+  <p>இந்தப் பகுதி மரபு நூல்களைப் பற்றிய வெளியிடப்பட்ட ஆய்வுகள் மற்றும் குன்மம் நோயாளிகளிடம் நடத்தப்பட்ட ஒரு கண்காணிப்பு ஆய்வின் சுருக்கம். கீழுள்ள அளவுகள் <strong>ஆய்வில் அறிக்கையிடப்பட்ட பாரம்பரியக் குறிப்புகள்</strong> மட்டுமே; தனிநபருக்கு நோயறிதல் செய்யவோ நோயின் தீவிரத்தைத் தீர்மானிக்கவோ தனியாகப் பயன்படுத்தக் கூடாது.</p>
+  <div class="notice"><strong>முக்கிய பாதுகாப்புக் குறிப்பு:</strong> இந்த அளவுகள் மருத்துவ ரீதியாக உறுதிப்படுத்தப்பட்ட diagnostic cut-offs அல்ல. செயலி அளவை வைத்து குன்மம் இருக்கிறது/இல்லை, mild/moderate/severe, prognosis அல்லது சிகிச்சை என்று தானாக முடிவு செய்யாது. மருத்துவரின் நேரடி மதிப்பீடு அவசியம்.</div>
+  <h3>1. மரபு நூல் அடிப்படை</h3>
+  <p>2019 இலக்கிய ஆய்வு, மணிக்கடை நூல் முறை <em>Agasthiyar Soodamani Kajiru Soothiram</em> (Pathinen Siddhar Naadi Nool மரபில் குறிப்பிடப்படுவது) போன்ற சித்த நூல்களுடன் தொடர்புபடுத்தப்படுவதாகக் கூறுகிறது. மணிக்கட்டின் சுற்றளவை நூலால் அளந்து, அந்த அளவை நோயாளியின் சொந்த விரற்கடை அலகுடன் ஒப்பிடுவதே இம்முறையின் விவரிக்கப்பட்ட நடைமுறை. மூல நூலின் பதிப்பு, பதிப்பாசிரியர், பாடல் எண் மற்றும் பக்கத்தைத் தகுதியான சித்த ஆசிரியர்/மருத்துவர் மூலம் சரிபார்த்த பின்பே இதை “அங்கீகரிக்கப்பட்ட மூல உரை” எனக் குறிப்பிடவும்.</p>
+  <h3>2. குன்மம் தொடர்பாக 2019 ஆய்வில் அறிக்கையிடப்பட்ட அளவுகள்</h3>
+  <p>Raveendran, Rajarajeshwari மற்றும் Victoria நடத்திய <em>Validation of Siddha Diagnostic Procedure of Manikkadai Nool for Gunmam Patients</em> ஆய்வு, இலக்கியத்தில் குன்மத்துடன் தொடர்புபடுத்தப்பட்டதாகக் கூறப்படும் பின்வரும் விரற்கடை மதிப்புகளைப் பட்டியலிடுகிறது:</p>
+  <div style="overflow:auto"><table>
+    <thead><tr><th>ஆய்வில் குறிப்பிடப்பட்ட விரற்கடை அளவு</th><th>ஆய்வாளர்கள் முன்மொழிந்த வகைப்படுத்தல்</th><th>எப்படி விளக்க வேண்டும்</th></tr></thead>
+    <tbody>
+      <tr><td>10 முதல் 9 வரை (9½ உட்பட)</td><td>மிதமான நிலை (mild) என ஆய்வில் முன்மொழியப்பட்டது</td><td>ஆய்வில் முன்மொழிந்த வகை மட்டுமே; தனிநபர் நோய்நிலையை உறுதிப்படுத்தாது.</td></tr>
+      <tr><td>8¾ முதல் 7¾ வரை</td><td>மித-கடுமை / நடுத்தர நிலை (moderate) என முன்மொழியப்பட்டது</td><td>மரபு அட்டவணை மற்றும் ஆய்வின் வகைப்படுத்தலை மருத்துவ உறுதிப்படுத்தலாகக் கருத வேண்டாம்.</td></tr>
+      <tr><td>7½ முதல் 6¼ வரை (6½, 6¼ உள்ளிட்ட கீழ் அளவுகள்)</td><td>கடுமையான நிலை (severe) என ஆய்வில் முன்மொழியப்பட்டது</td><td>இது validated severity scale அல்ல; மருத்துவத் தீர்மானத்திற்கு மாற்றாகப் பயன்படுத்தக் கூடாது.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">குறிப்பு: கட்டுரையின் சுருக்கத்தில் mild 10–9, moderate 8¾–7¾, severe 7½–6½ எனக் குறிப்பிடப்பட்டாலும், அதே கட்டுரை குன்மம் தொடர்பான இலக்கிய அளவுகளாக 6¼-ஐயும் பட்டியலிடுகிறது. எனவே கீழ் வரம்பு மற்றும் இடைப்பட்ட அளவுகளின் வகைப்படுத்தலை மூலக் கட்டுரை/மூல அட்டவணையுடன் நிபுணர் மீண்டும் சரிபார்க்க வேண்டும்; இடைவெளிகளை ஊகித்து நிரப்ப வேண்டாம்.</p>
+  <h3>2A. தோராயமான செ.மீ. மாற்றம் — கல்வி நோக்கத்திற்கு மட்டும்</h3>
+  <p>விளக்கத்திற்காக மட்டும், 1 விரற்கடை ≈ 1.9 cm என்ற தற்காலிக மாற்றுக் காரணி பயன்படுத்தினால், மேலே உள்ள விரற்கடை மதிப்புகளைப் பின்வருமாறு கணிதரீதியாக மாற்றலாம். இந்த மாற்றுக் காரணி அசல் சித்த நூல் அல்லது தனித்த மருத்துவ ஆய்வால் இங்கு உறுதிப்படுத்தப்படவில்லை; எனவே இதை அதிகாரப்பூர்வமான அல்லது நோயறிதல் வரம்பாகக் கருத வேண்டாம்.</p>
+  <div style="overflow:auto"><table>
+    <thead><tr><th>ஆய்வில் முன்மொழிந்த வகை</th><th>விரற்கடை அளவு</th><th>தோராயமான செ.மீ. அளவு (1 விரற்கடை ≈ 1.9 cm எனக் கொண்டு)</th></tr></thead>
+    <tbody>
+      <tr><td>மிதமான நிலை (mild)</td><td>9–10</td><td>17.1–19.0 cm</td></tr>
+      <tr><td>நடுத்தர நிலை (moderate)</td><td>7¾–8¾</td><td>14.7–16.6 cm</td></tr>
+      <tr><td>கடுமையான நிலை (severe)</td><td>6¼–7½</td><td>11.9–14.3 cm</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted"><strong>முக்கியம்:</strong> இவை கணித மாற்றங்கள் மட்டுமே; ஆய்வில் நேரடியாக அளந்த செ.மீ. சராசரிகள் அல்ல. விரற்கடை என்பது நபரின் விரல் அடிப்படையில் மாறக்கூடிய அலகு என்பதால், ஒரே நிலையான செ.மீ. மாற்றம் எல்லோருக்கும் பொருந்தும் என்று கருத முடியாது. நடைமுறையில் பயன்படுத்துவதற்கு முன் அசல் உரை, அளவீட்டு முறை மற்றும் மாற்றுக் காரணி ஆகியவற்றைத் தகுதியான சித்த மருத்துவர்/ஆசிரியர் சரிபார்க்க வேண்டும்.</p>
+  <h3>3. ஆய்வு வடிவமைப்பு மற்றும் கண்டுபிடிப்புகள்</h3>
+  <ul>
+    <li>இது 2019-இல் Government Siddha Medical College &amp; Hospital, Palayamkottai-யில் ஏப்ரல்–ஆகஸ்ட் காலத்தில் மேற்கொள்ளப்பட்டதாகக் கட்டுரை தெரிவிக்கிறது.</li>
+    <li>கட்டுரையின் சுருக்கத்தில் 50 குன்மம் நோயாளிகள் இடம்பெற்றதாகவும், 45 பேரின் அளவுகள் ஆய்வாளர்கள் முன்கூட்டியே கருதிய மதிப்பீட்டு வரம்புடன் பொருந்தியதாகவும் கூறப்படுகிறது.</li>
+    <li>ஆசிரியர்கள் குன்மத்தின் நீடிப்பு/தீவிரத்துக்கும் மணிக்கடை நூல் அளவுக்கும் எதிர்மறைத் தொடர்பு இருப்பதாக அறிக்கையிட்டனர்; இருப்பினும், அவர்கள் தாமே மேலதிக ஆய்வு தேவை என்று முடிவுசெய்தனர்.</li>
+    <li>ஒரே சிறிய கண்காணிப்பு ஆய்வின் முடிவுகள் பொதுவான மருத்துவப் பயன்பாட்டிற்கான துல்லியம், sensitivity, specificity அல்லது உறுதியான cut-off-களை நிறுவுவதில்லை.</li>
+  </ul>
+  <h3>4. மருத்துவப் பயிற்சியாளர்களுக்கான சரிபார்ப்பு வழிமுறைகள்</h3>
+  <ol>
+    <li><strong>மூலத்தைச் சரிபார்க்கவும்:</strong> அசல் சித்த நூல்/நம்பகமான பதிப்பில் பாடல், பதிப்பு, பக்கம் மற்றும் அளவீட்டு விதியைப் பதிவு செய்யவும். இரண்டாம் நிலை ஆய்விலிருந்து மட்டும் “மூல நூல் சொல்கிறது” என்று கூற வேண்டாம்.</li>
+    <li><strong>அளவீட்டு முறையை ஒரே மாதிரியாக்கவும்:</strong> எந்த உடற்குறியில் அளக்க வேண்டும், நூலின் பொருள்/இறுக்கம், விரற்கடை எப்படிக் கணக்கிடப்படுகிறது என்பவற்றை முன்கூட்டியே எழுதித் தீர்மானிக்கவும்; பயிற்சி பெற்ற அளவீட்டாளர்கள் இடையேயான வேறுபாட்டையும் பதிவு செய்யவும்.</li>
+    <li><strong>மருத்துவ நோயறிதலைத் தனியாக உறுதிப்படுத்தவும்:</strong> குன்மம் என்ற மருத்துவத் தீர்மானம் தகுதியான மருத்துவரின் வரலாறு, அறிகுறிகள், உடற்பரிசோதனை மற்றும் தேவையான நவீன மருத்துவப் பரிசோதனைகள் மூலம் மதிப்பிடப்பட வேண்டும். மணிக்கடை நூல் அளவை ஒரே அளவுகோலாகப் பயன்படுத்த வேண்டாம்.</li>
+    <li><strong>ஆராய்ச்சியில் முன்பதிவு செய்யப்பட்ட திட்டத்தைப் பயன்படுத்தவும்:</strong> தெளிவான inclusion/exclusion criteria, ஒப்பீட்டு reference standard, blinded assessment, sample-size justification, confidence intervals மற்றும் sensitivity/specificity போன்ற diagnostic-accuracy அளவுகளை முன்கூட்டியே திட்டமிடவும்.</li>
+    <li><strong>நெறிமுறை மற்றும் ஒப்புதல்:</strong> நிறுவன நெறிமுறைக் குழு அனுமதி, பங்கேற்பாளர் தகவலறிந்த ஒப்புதல், தனியுரிமை மற்றும் பாதுகாப்பான தரவு மேலாண்மை அவசியம்.</li>
+    <li><strong>முடிவுகளை எச்சரிக்கையுடன் கூறவும்:</strong> வெளிப்புற/சுயாதீன குழுவில் மறுபரிசோதனை செய்யாமல், இந்த வரம்புகளை பொதுமக்களுக்கான diagnostic tool அல்லது prognosis predictor ஆக அறிவிக்க வேண்டாம்.</li>
+  </ol>
+  <h3>5. வரம்புகள்</h3>
+  <ul>
+    <li>வெளியிடப்பட்ட இலக்கியத்தில் உள்ள பாரம்பரிய தொடர்புகள் காரண-விளைவு உறவை நிரூபிப்பதில்லை.</li>
+    <li>சிறிய மாதிரி அளவு, ஒற்றை மைய ஆய்வு, அளவீட்டு முறை வேறுபாடு மற்றும் பயன்படுத்தப்பட்ட வகைப்படுத்தல் ஆகியவை பொதுமைப்படுத்தலைக் கட்டுப்படுத்தலாம்.</li>
+    <li>உடல் அமைப்பு மற்றும் அளவீட்டு நடைமுறையில் உள்ள வேறுபாடுகள் மதிப்பை பாதிக்கலாம்; ஒரு விரற்கடை அளவு அனைவருக்கும் ஒரே மாதிரி செ.மீ. அளவாகக் கருதப்படாது.</li>
+    <li>குன்மம் போன்ற வயிற்று அறிகுறிகளுக்கு பல காரணங்கள் இருக்கலாம். கடுமையான அல்லது நீடித்த வயிற்றுவலி, இரத்த வாந்தி/மலம், தொடர்ச்சியான வாந்தி அல்லது மயக்கம் இருந்தால் உடனடியாக மருத்துவ உதவி பெற வேண்டும்.</li>
+  </ul>
+  <h3>6. வெளியிடப்பட்ட ஆய்வுகள்</h3>
+  <ol>
+    <li>Raveendran R, Rajarajeshwari A, Victoria S. <em>Validation of Siddha Diagnostic Procedure of Manikkadai Nool for Gunmam Patients at Government Siddha Medical College &amp; Hospital, Palayamkottai.</em> Journal of Complementary and Alternative Medical Research. 2019;8(3):1–11. DOI: <a href="https://doi.org/10.9734/jocamr/2019/v8i330121" target="_blank" rel="noopener noreferrer">10.9734/jocamr/2019/v8i330121</a>.</li>
+    <li>Raveendran R, Rajarajeshwari A, Victoria S. <em>Literature Review of Traditional Siddha Diagnostic Method of Manikkadai Nool.</em> Journal of Complementary and Alternative Medical Research. 2019;7(4):1–5. DOI: <a href="https://doi.org/10.9734/jocamr/2019/v7i430108" target="_blank" rel="noopener noreferrer">10.9734/jocamr/2019/v7i430108</a>.</li>
+    <li>Vinayak S, Sathiyarajeswaran P, Gayatri R, Priya BK. <em>Guidelines for Reporting Diagnostic Accuracy Studies of Siddha Anthropometric Tool Manikkadai Nool.</em> International Journal of Health Sciences. 2022. DOI: <a href="https://doi.org/10.53730/ijhs.v6nS2.6766" target="_blank" rel="noopener noreferrer">10.53730/ijhs.v6nS2.6766</a>.</li>
+    <li>Kabeena AK, Susimitha M, Revathi K. <em>A Literature Review on Manikkadai Nool a Traditional Diagnostic Tool in Siddha Medicine.</em> International Journal of Research and Scientific Innovation. 2026;13(3):1–4. DOI: <a href="https://doi.org/10.51244/IJRSI.2026.130300001" target="_blank" rel="noopener noreferrer">10.51244/IJRSI.2026.130300001</a>. Treat this as a recent literature review, not as independent clinical validation.</li>
+  </ol>
+  <p class="muted">For educational exhibition use. Do not use the above ranges to diagnose, grade severity, predict outcomes, or delay evidence-based clinical assessment.</p>
+</div>
+</div>
+</section>
+
+<section id="page-history" class="page hidden">
+<div class="card">
+<h2 id="historyHeading">Session history on this device</h2>
+<p class="muted" id="historyIntro">Records are stored locally in this browser. Avoid entering personal identifiers. Clear the history when your expo session ends.</p>
+<div id="historyTable"></div>
+<div class="actions no-print"><button class="btn secondary" id="exportHistoryBtn2" type="button">Export CSV</button><button class="btn danger" id="clearHistoryBtn" type="button">Clear history</button></div>
+</div>
+</section>
+</main>
+<footer>Manikkadai Nool Expo Prototype • Educational reference tool only • Local browser storage</footer>
+<script>
+const translations = {
+en:{
+title:"Manikkadai Nool Assessment",subtitle:"A digital educational demonstration of the traditional Siddha wrist-thread reference method.",assessment:"Assessment",references:"Reference Table",history:"Session History",measureHeading:"Record a measurement",measureIntro:"Measure around the wrist with a non-stretch thread, then measure the marked thread against a ruler. This is circumference, not straight-line diameter.",sessionLabel:"Anonymous session ID (optional)",measurementLabel:"Wrist circumference",unitLabel:"Unit",repeatLabel:"Repeat measurement (optional)",notesLabel:"Notes (optional; do not enter identifying or sensitive details)",lookupBtn:"Find reference entry",safetyNotice:"Educational use only. Wrist circumference alone cannot diagnose a disease. This prototype does not provide medical advice or prescribe treatment.",stepsHeading:"Measurement steps",steps:["Explain the demonstration and obtain consent.","Ask the visitor to relax the hand and wrist; remove tight accessories.","Use a clean, non-stretch thread at the landmark approved by your Siddha faculty supervisor.","Wrap snugly without compressing the skin and mark where the ends meet.","Measure the marked thread with a ruler and record the circumference.","Repeat once to check consistency, then use the verified reference table."],reviewNotice:"The photographed book tables must be transcribed and checked by a qualified Siddha physician before use. No unverified diagnostic interpretation is included by default.",resultHeading:"Assessment result",resultEmpty:"Enter a measurement and select “Find reference entry”.",print:"Print / Save as PDF",exportHistory:"Export session history (CSV)",referenceHeading:"Verified reference table",referenceIntro:"Add only entries transcribed from the original source and verified by a qualified Siddha physician. Use lower/upper circumference bounds in the same unit.",minLabel:"Minimum circumference (inclusive)",maxLabel:"Maximum circumference (inclusive)",refUnitLabel:"Unit",tamilLabel:"Traditional text (Tamil)",englishLabel:"English translation / note (optional)",sourceLabel:"Source / page",reviewerLabel:"Verified by",addReferenceBtn:"Add verified entry",exportRefs:"Export reference CSV",importRefs:"Import reference CSV",csvHint:"CSV columns: min,max,unit,tamil,english,source,reviewer. Import only verified data.",entriesHeading:"Saved reference entries",noRefs:"No reference rows are preloaded because the supplied photographs need careful transcription and expert verification. The app will not guess missing interpretations.",clearRefs:"Clear all reference entries",historyHeading:"Session history on this device",historyIntro:"Records are stored locally in this browser. Avoid entering personal identifiers. Clear the history when your expo session ends.",exportCSV:"Export CSV",clearHistory:"Clear history",noMatch:"No verified reference entry matches this measurement. Do not infer or guess an interpretation.",matched:"Matched verified reference entry",diagnostic:"This is a traditional reference interpretation for education only, not a medical diagnosis.",invalid:"Please enter a valid positive circumference measurement.",repeatWarning:"The two readings differ. Please remeasure and confirm the value before continuing.",noRefsShort:"No verified reference entries have been added yet.",session:"Session",measurement:"Measurement",reference:"Reference interpretation",source:"Source",reviewer:"Verified by",actions:"Actions",delete:"Delete",confirmClear:"Are you sure you want to clear this data?",confirmRefs:"Clear all reference entries from this device?",saved:"Reference entry saved.",rangeError:"Minimum must be less than or equal to maximum.",overlap:"Warning: this range overlaps an existing entry. Review the source ranges carefully.",savedHistory:"Saved to this device's local session history.",notFound:"No verified entry found."
+},
+ta:{
+title:"மணிக்கடை நூல் மதிப்பீடு",subtitle:"சித்த மருத்துவ மரபு மணிக்கடை நூல் முறையை விளக்கும் கல்வி நோக்கிலான செயலி.",assessment:"மதிப்பீடு",references:"குறிப்பு அட்டவணை",history:"அமர்வு வரலாறு",measureHeading:"அளவீட்டைப் பதிவு செய்க",measureIntro:"நீளமடையாத நூலை மணிக்கட்டைச் சுற்றி அளந்து, பின்னர் நூலை அளவுகோலில் அளக்கவும். இது சுற்றளவு; நேர்கோட்டு விட்டம் அல்ல.",sessionLabel:"பெயரில்லா அமர்வு எண் (விருப்பம்)",measurementLabel:"மணிக்கட்டு சுற்றளவு",unitLabel:"அலகு",repeatLabel:"மீண்டும் அளந்த மதிப்பு (விருப்பம்)",notesLabel:"குறிப்புகள் (அடையாள/உணர்வுபூர்வ விவரங்களை உள்ளிட வேண்டாம்)",lookupBtn:"குறிப்பு பதிவைக் காண்க",safetyNotice:"கல்வி நோக்கத்திற்கு மட்டும். மணிக்கட்டு சுற்றளவு மட்டும் கொண்டு நோயைக் கண்டறிய முடியாது. இந்த மாதிரி செயலி மருத்துவ ஆலோசனையோ சிகிச்சையோ வழங்காது.",stepsHeading:"அளவிடும் படிகள்",steps:["செய்முறையை விளக்கி ஒப்புதல் பெறவும்.","கையைத் தளர்வாக வைத்திருக்கச் சொல்லி, இறுக்கமான அணிகலன்களை அகற்றவும்.","சித்த மருத்துவ ஆசிரியர் உறுதிப்படுத்திய இடத்தில் சுத்தமான, நீளமடையாத நூலைப் பயன்படுத்தவும்.","தோலை அழுத்தாமல் சுற்றி, நூலின் முனைகள் சந்திக்கும் இடத்தைக் குறிக்கவும்.","குறித்த நூலை அளவுகோலில் அளந்து சுற்றளவைப் பதிவு செய்யவும்.","மீண்டும் ஒருமுறை அளந்து சரிபார்த்து, உறுதிப்படுத்தப்பட்ட அட்டவணையைப் பயன்படுத்தவும்."],reviewNotice:"புத்தகப் படங்களில் உள்ள அட்டவணைகளைத் துல்லியமாகப் படியெடுத்து, தகுதியான சித்த மருத்துவரால் சரிபார்த்த பின்னரே பயன்படுத்த வேண்டும். சரிபார்க்கப்படாத நோய் விளக்கம் இயல்பாக சேர்க்கப்படவில்லை.",resultHeading:"மதிப்பீட்டு முடிவு",resultEmpty:"அளவை உள்ளிட்டு “குறிப்பு பதிவைக் காண்க” என்பதைத் தேர்ந்தெடுக்கவும்.",print:"அச்சிடு / PDF ஆக சேமி",exportHistory:"அமர்வு வரலாற்றை CSV ஆக ஏற்றுமதி செய்",referenceHeading:"சரிபார்க்கப்பட்ட குறிப்பு அட்டவணை",referenceIntro:"மூல நூலிலிருந்து படியெடுத்து, தகுதியான சித்த மருத்துவரால் சரிபார்க்கப்பட்ட பதிவுகளை மட்டும் சேர்க்கவும். குறைந்த/அதிக சுற்றளவு ஒரே அலகில் இருக்க வேண்டும்.",minLabel:"குறைந்தபட்ச சுற்றளவு (உட்பட)",maxLabel:"அதிகபட்ச சுற்றளவு (உட்பட)",refUnitLabel:"அலகு",tamilLabel:"மரபு விளக்கம் (தமிழ்)",englishLabel:"ஆங்கில மொழிபெயர்ப்பு / குறிப்பு (விருப்பம்)",sourceLabel:"மூலம் / பக்கம்",reviewerLabel:"சரிபார்த்தவர்",addReferenceBtn:"சரிபார்க்கப்பட்ட பதிவைச் சேர்",exportRefs:"குறிப்பு CSV ஏற்றுமதி",importRefs:"குறிப்பு CSV இறக்குமதி",csvHint:"CSV பத்திகள்: min,max,unit,tamil,english,source,reviewer. சரிபார்க்கப்பட்ட தரவை மட்டும் இறக்குமதி செய்யவும்.",entriesHeading:"சேமித்த குறிப்பு பதிவுகள்",noRefs:"படங்களில் உள்ள அட்டவணைகள் கவனமாகப் படியெடுத்து நிபுணரால் சரிபார்க்கப்பட வேண்டியதால் பதிவுகள் முன்கூட்டியே சேர்க்கப்படவில்லை. செயலி ஊகித்து விளக்கம் வழங்காது.",clearRefs:"அனைத்து குறிப்பு பதிவுகளையும் நீக்கு",historyHeading:"இந்த சாதனத்தின் அமர்வு வரலாறு",historyIntro:"பதிவுகள் இந்த உலாவியில் உள்ளூராகச் சேமிக்கப்படும். தனிப்பட்ட அடையாள விவரங்களைத் தவிர்க்கவும். கண்காட்சி முடிந்ததும் வரலாற்றை அழிக்கவும்.",exportCSV:"CSV ஏற்றுமதி",clearHistory:"வரலாற்றை அழி",noMatch:"இந்த அளவுக்கு பொருந்தும் சரிபார்க்கப்பட்ட குறிப்பு இல்லை. ஊகித்து விளக்கம் தர வேண்டாம்.",matched:"சரிபார்க்கப்பட்ட குறிப்பு பதிவு பொருந்துகிறது",diagnostic:"இது கல்விக்கான மரபுக் குறிப்பு விளக்கம் மட்டுமே; மருத்துவ நோயறிதல் அல்ல.",invalid:"சரியான நேர்மறை சுற்றளவு அளவை உள்ளிடவும்.",repeatWarning:"இரண்டு அளவுகளிலும் வேறுபாடு உள்ளது. மீண்டும் அளந்து மதிப்பை உறுதிப்படுத்தவும்.",noRefsShort:"சரிபார்க்கப்பட்ட குறிப்பு பதிவுகள் இன்னும் சேர்க்கப்படவில்லை.",session:"அமர்வு",measurement:"அளவீடு",reference:"குறிப்பு விளக்கம்",source:"மூலம்",reviewer:"சரிபார்த்தவர்",actions:"செயல்கள்",delete:"நீக்கு",confirmClear:"இந்தத் தரவை அழிக்க விரும்புகிறீர்களா?",confirmRefs:"இந்தச் சாதனத்திலுள்ள அனைத்து குறிப்பு பதிவுகளையும் அழிக்கவா?",saved:"குறிப்பு பதிவு சேமிக்கப்பட்டது.",rangeError:"குறைந்தபட்ச மதிப்பு அதிகபட்சத்தை விட அதிகமாக இருக்கக் கூடாது.",overlap:"எச்சரிக்கை: இந்த வரம்பு ஏற்கனவே உள்ள பதிவுடன் ஒட்டுகிறது. மூல வரம்புகளைச் சரிபார்க்கவும்.",savedHistory:"இந்தச் சாதனத்தின் உள்ளூர் அமர்வு வரலாற்றில் சேமிக்கப்பட்டது.",notFound:"சரிபார்க்கப்பட்ட பதிவு கிடைக்கவில்லை."
+}};
+let lang="en";
+const $=id=>document.getElementById(id);
+const getRefs=()=>JSON.parse(localStorage.getItem("mn_refs")||"[]");
+const setRefs=v=>localStorage.setItem("mn_refs",JSON.stringify(v));
+const getHistory=()=>JSON.parse(localStorage.getItem("mn_history")||"[]");
+const setHistory=v=>localStorage.setItem("mn_history",JSON.stringify(v));
+function t(k){return translations[lang][k]||translations.en[k]||k}
+function applyLanguage(){
+document.documentElement.lang=lang==="ta"?"ta":"en";
+const map={title:"title",subtitle:"subtitle",tabAssessment:"assessment",tabReferences:"references",tabHistory:"history",measureHeading:"measureHeading",measureIntro:"measureIntro",sessionLabel:"sessionLabel",measurementLabel:"measurementLabel",unitLabel:"unitLabel",repeatLabel:"repeatLabel",notesLabel:"notesLabel",lookupBtn:"lookupBtn",stepsHeading:"stepsHeading",reviewNotice:"reviewNotice",resultHeading:"resultHeading",printBtn:"print",exportHistoryBtn:"exportHistory",referenceHeading:"referenceHeading",referenceIntro:"referenceIntro",minLabel:"minLabel",maxLabel:"maxLabel",refUnitLabel:"refUnitLabel",tamilLabel:"tamilLabel",englishLabel:"englishLabel",sourceLabel:"sourceLabel",reviewerLabel:"reviewerLabel",addReferenceBtn:"addReferenceBtn",exportRefsBtn:"exportRefs",csvHint:"csvHint",entriesHeading:"entriesHeading",noReferenceNotice:"noRefs",clearRefsBtn:"clearRefs",historyHeading:"historyHeading",historyIntro:"historyIntro",exportHistoryBtn2:"exportCSV",clearHistoryBtn:"clearHistory"};
+Object.entries(map).forEach(([id,key])=>{if($(id))$(id).textContent=t(key)});
+$("stepsList").innerHTML=translations[lang].steps.map(s=>`<li>${s}</li>`).join("");
+$("safetyNotice").innerHTML="<strong>"+(lang==="ta"?"கல்வி நோக்கத்திற்கு மட்டும்.":"Educational use only.")+"</strong> "+(lang==="ta"?"மணிக்கட்டு சுற்றளவு மட்டும் கொண்டு நோயைக் கண்டறிய முடியாது. இந்த மாதிரி செயலி மருத்துவ ஆலோசனையோ சிகிச்சையோ வழங்காது.":"Wrist circumference alone cannot diagnose a disease. This prototype does not provide medical advice or prescribe treatment.");
+renderRefs();renderHistory();
+}
+function showPage(name){document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+name).classList.remove("hidden");document.querySelectorAll(".tab[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===name));}
+document.querySelectorAll(".tab[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+$("languageBtn").addEventListener("click",()=>{lang=lang==="en"?"ta":"en";applyLanguage()});
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderRefs(){
+const refs=getRefs();const el=$("referenceTable");
+if(!refs.length){el.innerHTML=`<div class="empty">${t("noRefsShort")}</div>`;return}
+el.innerHTML=`<div style="overflow:auto"><table><thead><tr><th>Range</th><th>Traditional text</th><th>Source / reviewer</th><th class="no-print">${t("actions")}</th></tr></thead><tbody>${refs.map((r,i)=>`<tr><td>${r.min}–${r.max} ${r.unit}</td><td><div>${esc(r.tamil)}</div>${r.english?`<div class="muted">${esc(r.english)}</div>`:""}</td><td>${esc(r.source)}<br><span class="muted">${esc(r.reviewer)}</span></td><td class="no-print"><button class="btn danger" style="margin:0;padding:6px 9px" onclick="deleteRef(${i})">${t("delete")}</button></td></tr>`).join("")}</tbody></table></div>`;
+}
+window.deleteRef=i=>{const a=getRefs();a.splice(i,1);setRefs(a);renderRefs()};
+$("referenceForm").addEventListener("submit",e=>{
+e.preventDefault();const min=Number($("refMin").value),max=Number($("refMax").value);
+if(min>max){alert(t("rangeError"));return}
+const r={min,max,unit:$("refUnit").value,tamil:$("refTamil").value.trim(),english:$("refEnglish").value.trim(),source:$("source").value.trim(),reviewer:$("reviewer").value.trim()};
+const refs=getRefs();const overlap=refs.some(x=>x.unit===r.unit&&r.min<=x.max&&r.max>=x.min);
+if(overlap&&!confirm(t("overlap")+"\nContinue?"))return;
+refs.push(r);refs.sort((a,b)=>a.unit.localeCompare(b.unit)||a.min-b.min);setRefs(refs);$("referenceForm").reset();renderRefs();alert(t("saved"));
+});
+function findRef(value,unit){return getRefs().filter(r=>r.unit===unit&&value>=Number(r.min)&&value<=Number(r.max))}
+$("assessmentForm").addEventListener("submit",e=>{
+e.preventDefault();const val=Number($("measurement").value);const unit=$("unit").value;
+if(!Number.isFinite(val)||val<=0){alert(t("invalid"));return}
+const repeat=$("repeatMeasurement").value.trim();
+let warning="";
+if(repeat!==""&&Math.abs(Number(repeat)-val)>(unit==="cm"?0.3:3))warning=`<div class="notice">${t("repeatWarning")}</div>`;
+const hits=findRef(val,unit);const id=$("sessionId").value.trim()||("EXPO-"+new Date().toISOString().slice(0,19).replace(/[-:T]/g,""));
+const record={date:new Date().toLocaleString(),id,value:val,unit,repeat,notes:$("notes").value.trim(),match:hits.length?hits.map(h=>h.tamil).join(" | "):"",source:hits.length?hits.map(h=>h.source).join(" | "):""};
+const hist=getHistory();hist.unshift(record);setHistory(hist.slice(0,500));
+let result=hits.length?`<div class="result"><span class="pill">${t("matched")}</span><h3>${val} ${unit}</h3>${hits.map(h=>`<p><strong>${esc(h.tamil)}</strong>${h.english?`<br>${esc(h.english)}`:""}<br><span class="muted">${t("source")}: ${esc(h.source)} · ${t("reviewer")}: ${esc(h.reviewer)}</span></p>`).join("")}<p class="muted">${t("diagnostic")}</p></div>`:`<div class="result"><strong>${val} ${unit}</strong><p>${getRefs().length?t("noMatch"):t("noRefsShort")}</p><p class="muted">${t("diagnostic")}</p></div>`;
+$("resultArea").innerHTML=warning+result+`<p class="muted small">${t("savedHistory")}</p>`;renderHistory();
+});
+function renderHistory(){
+const h=getHistory();const el=$("historyTable");
+if(!h.length){el.innerHTML=`<div class="empty">${lang==="ta"?"இதுவரை பதிவுகள் இல்லை.":"No sessions recorded yet."}</div>`;return}
+el.innerHTML=`<div style="overflow:auto"><table><thead><tr><th>Date</th><th>${t("session")}</th><th>${t("measurement")}</th><th>${t("reference")}</th></tr></thead><tbody>${h.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.id)}</td><td>${r.value} ${r.unit}</td><td>${esc(r.match||t("notFound"))}<br><span class="muted">${esc(r.source)}</span></td></tr>`).join("")}</tbody></table></div>`;
+}
+function csvEscape(v){return '"'+String(v??"").replace(/"/g,'""')+'"'}
+function downloadCSV(filename,rows){const csv=rows.map(row=>row.map(csvEscape).join(",")).join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}
+function exportRefs(){downloadCSV("manikkadai_reference_table.csv",[["min","max","unit","tamil","english","source","reviewer"],...getRefs().map(r=>[r.min,r.max,r.unit,r.tamil,r.english,r.source,r.reviewer])])}
+function exportHistory(){downloadCSV("manikkadai_session_history.csv",[["date","session_id","value","unit","repeat","notes","matched_reference","source"],...getHistory().map(r=>[r.date,r.id,r.value,r.unit,r.repeat,r.notes,r.match,r.source])])}
+$("exportRefsBtn").onclick=exportRefs;$("exportHistoryBtn").onclick=exportHistory;$("exportHistoryBtn2").onclick=exportHistory;$("printBtn").onclick=()=>window.print();
+$("clearRefsBtn").onclick=()=>{if(confirm(t("confirmRefs"))){setRefs([]);renderRefs()}};
+$("clearHistoryBtn").onclick=()=>{if(confirm(t("confirmClear"))){setHistory([]);renderHistory()}};
+function parseCSV(text){
+const rows=[];let row=[],cell="",quoted=false;
+for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&quoted&&n==='"'){cell+='"';i++}else if(c==='"'){quoted=!quoted}else if(c===','&&!quoted){row.push(cell);cell=""}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&n==='\n')i++;row.push(cell);if(row.some(v=>v.trim()!==""))rows.push(row);row=[];cell=""}else cell+=c}
+row.push(cell);if(row.some(v=>v.trim()!==""))rows.push(row);return rows
+}
+$("importFile").addEventListener("change",async e=>{
+const f=e.target.files[0];if(!f)return;try{const rows=parseCSV(await f.text());const start=rows[0]?.[0]?.toLowerCase()==="min"?1:0;const parsed=rows.slice(start).map(r=>({min:Number(r[0]),max:Number(r[1]),unit:(r[2]||"cm").trim(),tamil:r[3]||"",english:r[4]||"",source:r[5]||"",reviewer:r[6]||""})).filter(r=>Number.isFinite(r.min)&&Number.isFinite(r.max)&&r.min<=r.max&&["cm","mm"].includes(r.unit)&&r.tamil.trim()&&r.source.trim()&&r.reviewer.trim());if(!parsed.length)throw Error("No valid rows. Check the CSV columns and required fields.");if(confirm(`Import ${parsed.length} verified reference rows?`)){setRefs([...getRefs(),...parsed].sort((a,b)=>a.unit.localeCompare(b.unit)||a.min-b.min));renderRefs();alert(t("saved"))}}catch(err){alert("CSV import failed: "+err.message)}e.target.value="";
+});
+applyLanguage();
+</script>
+</body>
+</html>
